@@ -7,8 +7,13 @@ import org.slf4j.LoggerFactory;
  * Created by AzarovD on 19.01.2016.
  */
 public class REAttrDataExchangeOutConstant {
+    public static final String FUNCTION_NAME = "msuimsync.setMsuimResponse";
+    public static final String FUNCTION_PREFIX = "func";
+    public static final String SEPARATOR = "=";
+    public static final String AND = "&";
+    public static final String UTF_8 = "UTF-8";
+
     public static final String SUCCESS = "Success";
-    public static final String ERROR_MESSAGE = "ErrorText";
     public static final String FILE_NAME = "File_Name";
     public static final String LOGICAL_SYSTEM = "LogicalSystem";
     public static final String INTERNAL_OBJECT_NUMBER = "InternalObjectNumber";
@@ -27,4 +32,5 @@ public class REAttrDataExchangeOutConstant {
     public static final String LOCATION_ELAR = "Location_ELAR";
     public static final String ERROR_TEXT = "ErrorText";
     public static final String LINE = "Line";
+    public static final String CONTENT = "Content";
 }

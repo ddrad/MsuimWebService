@@ -1,5 +1,7 @@
 package ru.terralink.ws.msuim.impl;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.terralink.ws.msuim.REAttrDataExchangeOut;
@@ -8,7 +10,6 @@ import ru.terralink.ws.object.REAttrDataExchangeResponse;
 import javax.jws.WebService;
 import java.io.*;
 import java.net.*;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -21,11 +22,6 @@ import static ru.terralink.ws.msuim.constant.REAttrDataExchangeOutConstant.*;
 public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
 
     private static final Logger logger = LoggerFactory.getLogger(REAttrDataExchangeOutService.class.getSimpleName());
-    private static final String FUNCTION_NAME = "msuimsync.setMsuimResponse";
-    private static final String FUNCTION_PREFIX = "func";
-    private static final String SEPARATOR = "=";
-    private static final String AND = "&";
-    private static final String UTF_8 = "UTF-8";
 
     @Override
     public String printMessage(REAttrDataExchangeResponse reAttrDataExchangeResponse) {
@@ -34,10 +30,10 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
             logger.error("Argument REAttrDataExchangeResponse = null.");
         }
 
-        Map<String, Object> reAttrExchangeResponse = buildReAttrExchangeResponse(reAttrDataExchangeResponse);
+        JSONObject reAttrExchangeResponse = buildReAttrExchangeResponse(reAttrDataExchangeResponse);
+        byte[] httPostRequest = createHttPostRequest(reAttrExchangeResponse);
 
-        byte[] postData = convertToPostDataFormat(reAttrExchangeResponse);
-        int postDataLength = postData.length;
+        int postDataLength = httPostRequest.length;
         String request = "http://srv-phg-ukd3.itps.local/OTCS/cs.exe";
 
         try {
@@ -54,12 +50,12 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
             conn.setUseCaches(false);
 
             DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-            wr.write(postData);
+            wr.write(httPostRequest);
             wr.flush();
             wr.close();
 
             int responseCode = conn.getResponseCode();
-            System.out.println("POST Response Code :: " + responseCode);
+            logger.info("POST Response Code :: " + responseCode);
 
             if (responseCode == HttpURLConnection.HTTP_OK) {
                 BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -71,10 +67,10 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
                 }
                 in.close();
 
-                System.out.println(response.toString());
+                logger.info("Pass arguments: " + response.toString());
             } else {
                 String location = conn.getHeaderField("Location");
-                System.out.println("POST request not worked");
+                logger.error("POST request not worked. \nThe header field is " + location);
             }
         } catch (MalformedURLException e) {
             e.printStackTrace();
@@ -87,8 +83,11 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
         return null;
     }
 
-    private Map<String, Object> buildReAttrExchangeResponse(REAttrDataExchangeResponse reAttrDataExchangeResponse) {
-        Map<String, Object> response = new HashMap<String, Object>();
+    private JSONObject buildReAttrExchangeResponse(REAttrDataExchangeResponse reAttrDataExchangeResponse) {
+        JSONObject response = new JSONObject();
+        JSONObject jsonFileObject = new JSONObject();
+        JSONArray jsonFilesObject = new JSONArray();
+
         response.put(LOGICAL_SYSTEM, reAttrDataExchangeResponse.getSuccess());
         response.put(INTERNAL_OBJECT_NUMBER, reAttrDataExchangeResponse.getInternalObjectNumber());
         response.put(EXTERNAL_OBJECT_NUMBER, reAttrDataExchangeResponse.getExternalObjectNumber());
@@ -99,16 +98,54 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
 
         if (reAttrDataExchangeResponse.getFiles() != null && !reAttrDataExchangeResponse.getFiles().getFile().isEmpty()) {
             for (REAttrDataExchangeResponse.Files.File file : reAttrDataExchangeResponse.getFiles().getFile()) {
+                jsonFileObject.put(FILE_NAME, file.getFileName());
+                jsonFileObject.put(FILE_SIZE, file.getFileSize());
+                jsonFileObject.put(INTERNAL_FILE_ID, file.getInternalFileID());
+                jsonFileObject.put(EXTERNAL_FILE_ID, file.getExternalFileID());
+                jsonFileObject.put(CURRENT_PART, file.getCurrentPart());
+                jsonFileObject.put(ALL_PARTS, file.getAllParts());
+                jsonFileObject.put(LOCATION_SUIM, file.getLocationSUIM());
+                jsonFileObject.put(LOCATION_ELAR, file.getLocationELAR());
+                REAttrDataExchangeResponse.Files.File.ErrorText errorText = file.getErrorText();
+                fillFileErrorText(errorText, jsonFileObject);
 
+                jsonFilesObject.put(jsonFileObject);
             }
         }
+
+        response.put(FILES, jsonFilesObject);
+
+        fillErrorText(reAttrDataExchangeResponse, response);
+
         return response;
     }
 
-    private byte[] convertToPostDataFormat(Map<String, Object> params) {
+    private void fillErrorText(REAttrDataExchangeResponse reAttrDataExchangeResponse, JSONObject response) {
+        REAttrDataExchangeResponse.ErrorText errorText = reAttrDataExchangeResponse.getErrorText();
+        if (errorText != null && !errorText.getLine().isEmpty()) {
+            JSONArray jsonFileLine = new JSONArray();
+            for (String line : errorText.getLine()) {
+
+                jsonFileLine.put(line);
+            }
+            response.put(ERROR_TEXT, jsonFileLine);
+        }
+    }
+
+    private void fillFileErrorText(REAttrDataExchangeResponse.Files.File.ErrorText errorText, JSONObject jsonObject) {
+        if (errorText != null && !errorText.getLine().isEmpty()) {
+            JSONArray jsonFileLine = new JSONArray();
+            for (String line : errorText.getLine()) {
+                jsonFileLine.put(line);
+            }
+            jsonObject.put(ERROR_TEXT, jsonFileLine);
+        }
+    }
+
+    private byte[] createHttPostRequest(JSONObject jsonObject) {
         StringBuilder strPostRequest = new StringBuilder();
 
-        if (params == null || params.isEmpty()) {
+        if (jsonObject == null) {
             logger.error("Faild build Http Request. The incomig params is null.");
             return null;
         }
@@ -119,23 +156,15 @@ public class REAttrDataExchangeOutService implements REAttrDataExchangeOut {
             logger.error("Failed encode for " + FUNCTION_PREFIX + SEPARATOR + FUNCTION_NAME);
         }
 
-        Iterator<Map.Entry<String, Object>> entryIterator = params.entrySet().iterator();
-
-        while (entryIterator.hasNext()) {
-            logger.info("Building params query:");
-            Map.Entry<String, Object> entry = entryIterator.next();
-            String entryKey = entry.getKey();
-            String entryValue = (String) entry.getValue();
-            logger.info("Param " + entryKey + " = " + entryValue);
-            strPostRequest.append(AND);
-            try {
-                strPostRequest.append(URLEncoder.encode(entryKey, UTF_8));
-                strPostRequest.append(SEPARATOR);
-                strPostRequest.append(URLEncoder.encode(entryValue, UTF_8));
-            } catch (UnsupportedEncodingException e) {
-                logger.error("Failed encode params:  " + e);
-            }
+        strPostRequest.append(AND);
+        try {
+            strPostRequest.append(URLEncoder.encode(CONTENT, UTF_8));
+            strPostRequest.append(SEPARATOR);
+            strPostRequest.append(URLEncoder.encode(jsonObject.toString(), UTF_8));
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Failed encode params:  " + e);
         }
+
         logger.info("Result: \n" + strPostRequest.toString());
         return strPostRequest.toString().getBytes();
     }
