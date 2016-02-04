@@ -6,19 +6,25 @@
 
     <display-name>jaxwsExample</display-name>
 
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>/WEB-INF/applicationContext.xml</param-value>
+    </context-param>
     <listener>
-        <listener-class>com.sun.xml.ws.transport.http.servlet.WSServletContextListener</listener-class>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
+
     <servlet>
-        <servlet-name>REAttrDataExchangeOutService</servlet-name>
-        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSServlet</servlet-class>
+        <servlet-name>REAttrDataExchangeInService</servlet-name>
+        <servlet-class>com.sun.xml.ws.transport.http.servlet.WSSpringServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
-        <servlet-name>REAttrDataExchangeOutService</servlet-name>
-        <url-pattern>/REAttrDataExchangeOutService</url-pattern>
+        <servlet-name>REAttrDataExchangeInService</servlet-name>
+        <url-pattern>/service/*</url-pattern>
     </servlet-mapping>
+
     <session-config>
-        <session-timeout>120</session-timeout>
+        <session-timeout>500</session-timeout>
     </session-config>
 </web-app>

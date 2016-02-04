@@ -1,5 +1,5 @@
 
-package ru.terralink.ws.object;
+package ru.terralink.ws.object.response;
 
 import javax.xml.bind.annotation.XmlRegistry;
 

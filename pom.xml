@@ -12,11 +12,38 @@
 
 
     <properties>
-        <jaxws-rt.version>2.1.4</jaxws-rt.version>
+        <spring.version>4.2.4.RELEASE</spring.version>
+        <jaxws-rt.version>2.2.8</jaxws-rt.version>
         <slf4j.version>1.7.13</slf4j.version>
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-beans</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jvnet.jax-ws-commons.spring</groupId>
+            <artifactId>jaxws-spring</artifactId>
+            <version>1.9</version>
+        </dependency>
         <dependency>
             <groupId>com.sun.xml.ws</groupId>
             <artifactId>jaxws-rt</artifactId>
@@ -38,10 +65,18 @@
             <version>20151123</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.opentext.livelink</groupId>
+            <artifactId>opentext-livelink-csw</artifactId>
+            <version>10.5</version>
+            <scope>compile</scope>
+        </dependency>
+
+
     </dependencies>
 
     <build>
-        <finalName>msui-ws</finalName>
+        <finalName>msuim-ws</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
