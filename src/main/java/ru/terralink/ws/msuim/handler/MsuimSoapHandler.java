@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import ru.terralink.ws.msuim.AttachmentInfo;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import javax.xml.ws.handler.MessageContext;
 import javax.xml.ws.handler.soap.SOAPHandler;
 import javax.xml.ws.handler.soap.SOAPMessageContext;
 
-@Service
+@Component
 public class MsuimSoapHandler implements SOAPHandler<SOAPMessageContext> {
 
     private static final Logger logger = LoggerFactory.getLogger(MsuimSoapHandler.class.getSimpleName());

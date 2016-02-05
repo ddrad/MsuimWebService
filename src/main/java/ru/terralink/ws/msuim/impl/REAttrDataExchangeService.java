@@ -4,6 +4,8 @@ import com.opentext.ecm.api.OTAuthentication;
 import com.opentext.livelink.service.core.*;
 import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
+import com.opentext.ecm.services.authws.AuthenticationException_Exception;
+import com.opentext.ecm.services.authws.AuthenticationService;
 import com.sun.xml.ws.api.message.Headers;
 import com.sun.xml.ws.api.message.Header;
 import com.sun.xml.ws.developer.JAXWSProperties;
@@ -24,6 +26,7 @@ import ru.terralink.ws.object.request.REDataExchangeAttrFile;
 import ru.terralink.ws.object.response.REAttrDataExchangeResponse;
 
 import javax.activation.DataHandler;
+import javax.activation.FileDataSource;
 import javax.jws.WebService;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -203,7 +206,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
     public void sendReAttrDataExchangeMessage(REDataExchangeAttrECD reAttrDataExchangeMessage) {
         logger.info("Run REAttrDataExchangeService...");
 
-        String contentType = attachmentInfo.getContentType();
+        String contentType = attachmentInfo.getContentType().equals(TEXT_PLAIN) ? OCTET_STREAM : attachmentInfo.getContentType();
         logger.info("Content Type : " + contentType);
 
         BufferedInputStream inputStream = new BufferedInputStream(attachmentInfo.getInputStream());
@@ -221,13 +224,18 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
         logger.info("File Name : " + fileName);
         XMLGregorianCalendar datum = attrFile.getDATUM();
 
-        String authToken = getAuthToken();
+        String otdsAuthToken = getOTDSAuthToken();
         logger.info(RESULT_SUCCESS);
+
+        Authentication authClient = getAuthenticationClient();
+        logger.info(RESULT_SUCCESS);
+
+        String csAuthToken = validateOTDSAuthToken(authClient, otdsAuthToken);
 
         DocumentManagement docManClient = getDocumentManagement();
         logger.info(RESULT_SUCCESS);
         OTAuthentication otAuth = new OTAuthentication();
-        otAuth.setAuthenticationToken(authToken);
+        otAuth.setAuthenticationToken(csAuthToken);
 
         fillSoapHeader((WSBindingProvider) docManClient, otAuth);
 
@@ -246,38 +254,63 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
         try {
             logger.info("Uploading document...");
             String objectID = contentServiceClient.uploadContent(new DataHandler(content, contentType));
-            logger.info(RESULT_SUCCESS+"\nNew document uploaded with ID = " + objectID);
+            logger.info(RESULT_SUCCESS + "\nNew document uploaded with ID = " + objectID);
         } catch (SOAPFaultException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
+            logger.error(RESULT_FAILED + "\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
             throw new RuntimeException(e.getFault().getFaultCode() + " : " + e.getMessage());
         }
     }
 
-    private String getAuthToken() {
+    private String getOTDSAuthToken() {
+        logger.info("Create the client proxies for each OTDS Authentication service...");
+        try {
+            URL authWsdl = new URL(openTextAdapter.getOtdsAuthenticationWsdlUrl());
+            AuthenticationService otdsAuthService = new AuthenticationService(authWsdl);
+            com.opentext.ecm.services.authws.Authentication otdsAuthClient = otdsAuthService.getAuthenticationPort();
+            System.out.print("Authenticating User...");
+            return otdsAuthClient.authenticate(openTextAdapter.getUser(), openTextAdapter.getPassword());
+        } catch (AuthenticationException_Exception e) {
+            logger.error(RESULT_FAILED + "\n" + e.getFaultInfo().getFaultCode() + " : " + e.getMessage());
+            throw new RuntimeException(e.getMessage());
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private Authentication getAuthenticationClient() {
         logger.info("Create the client proxies for each Authentication service...");
         try {
             URL authWsdl = new URL(openTextAdapter.getAuthenticationWsdlUrl());
             Authentication_Service authService = new Authentication_Service(authWsdl);
-            Authentication authClient = authService.getBasicHttpBindingAuthentication();
-            logger.info("Authenticating User...");
-            return authClient.authenticateUser(openTextAdapter.getUser(), openTextAdapter.getPassword());
+            return authService.getBasicHttpBindingAuthentication();
         } catch (SOAPFaultException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
+            logger.error(RESULT_FAILED + "\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
             throw new RuntimeException(e.getFault().getFaultCode() + " : " + e.getMessage());
         } catch (MalformedURLException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getMessage());
+            logger.error(RESULT_FAILED + "\n" + e.getMessage());
             throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    private String validateOTDSAuthToken(Authentication authClient, String otdsAuthToken) {
+        logger.info("Validate OTDS Authentication Token...");
+        try {
+            return authClient.validateUser(otdsAuthToken);
+        } catch (SOAPFaultException e) {
+            logger.error(RESULT_FAILED + "\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
+            throw new RuntimeException(e.getFault().getFaultCode() + " : " + e.getMessage());
         }
     }
 
     private DocumentManagement getDocumentManagement() {
         try {
             logger.info("Create the client proxies for each DocumentManagement service...");
-            URL docManager = new URL(openTextAdapter.getAuthenticationWsdlUrl());
+            URL docManager = new URL(openTextAdapter.getDocManagementWsdlUrl());
             DocumentManagement_Service docManService = new DocumentManagement_Service(docManager);
             return docManService.getBasicHttpBindingDocumentManagement();
         } catch (MalformedURLException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getMessage());
+            logger.error(RESULT_FAILED + "\n" + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -290,7 +323,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
             authTokenElement.addTextNode(otAuth.getAuthenticationToken());
             bindingProvider.setOutboundHeaders(Headers.create(otAuthElement));
         } catch (SOAPException e) {
-            logger.error(RESULT_FAILED+" to set authentication SOAP header!\n" + e.getMessage());
+            logger.error(RESULT_FAILED + " to set authentication SOAP header!\n" + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -318,7 +351,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
             headers.add(Headers.create(fileAttsElement));
             contentServiceClient.setOutboundHeaders(headers);
         } catch (SOAPException e) {
-            logger.error(RESULT_FAILED+" to set SOAP headers!\n" + e.getMessage());
+            logger.error(RESULT_FAILED + " to set SOAP headers!\n" + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }
@@ -329,7 +362,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
             long parentId = Long.parseLong(objectNumber);
             return docManClient.createDocumentContext(parentId, fileName, null, false, null);
         } catch (SOAPFaultException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
+            logger.error(RESULT_FAILED + "\n" + e.getFault().getFaultCode() + " : " + e.getMessage());
             throw new RuntimeException(e.getFault().getFaultCode() + " : " + e.getMessage());
         }
     }
@@ -340,8 +373,8 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
             URL contentServiceWsdlUrl = new URL(openTextAdapter.getContentserviceWsdlUrl());
             ContentService_Service contentService = new ContentService_Service(contentServiceWsdlUrl);
             return contentService.getBasicHttpBindingContentService(new MTOMFeature());
-        }catch (MalformedURLException e) {
-            logger.error(RESULT_FAILED+"\n" + e.getMessage());
+        } catch (MalformedURLException e) {
+            logger.error(RESULT_FAILED + "\n" + e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }

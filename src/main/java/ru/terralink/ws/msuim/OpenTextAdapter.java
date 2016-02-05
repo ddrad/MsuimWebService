@@ -20,6 +20,7 @@ public class OpenTextAdapter {
     private String docManagementWsdlUrl;
     private String authenticationWsdlUrl;
     private String contentserviceWsdlUrl;
+    private String otdsAuthenticationWsdlUrl;
     private String user;
     private String password;
 
@@ -30,6 +31,7 @@ public class OpenTextAdapter {
         this.authenticationWsdlUrl = environment.getProperty("ot.auth.url");
         this.docManagementWsdlUrl = environment.getProperty("ot.docmanager.url");
         this.contentserviceWsdlUrl = environment.getProperty("ot.contentservice.url");
+        this.otdsAuthenticationWsdlUrl = environment.getProperty("ot.otdsauth.url");
     }
 
     public String getDocManagementWsdlUrl() {
@@ -54,6 +56,14 @@ public class OpenTextAdapter {
 
     public void setContentserviceWsdlUrl(String contentserviceWsdlUrl) {
         this.contentserviceWsdlUrl = contentserviceWsdlUrl;
+    }
+
+    public String getOtdsAuthenticationWsdlUrl() {
+        return otdsAuthenticationWsdlUrl;
+    }
+
+    public void setOtdsAuthenticationWsdlUrl(String otdsAuthenticationWsdlUrl) {
+        this.otdsAuthenticationWsdlUrl = otdsAuthenticationWsdlUrl;
     }
 
     public String getUser() {

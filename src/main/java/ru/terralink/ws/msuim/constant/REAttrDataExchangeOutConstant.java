@@ -40,4 +40,7 @@ public class REAttrDataExchangeOutConstant {
     public static final String RESULT_SUCCESS = "Success";
     public static final String RESULT_FAILED = "Failed";
 
+    public static final String OCTET_STREAM = "application/octet-stream";
+    public static final String TEXT_PLAIN = "text/plain";
+
 }

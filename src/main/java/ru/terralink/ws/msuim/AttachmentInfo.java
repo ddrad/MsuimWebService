@@ -1,13 +1,13 @@
 package ru.terralink.ws.msuim;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
 /**
  * Created by AzarovD on 03.02.2016.
  */
-@Service("attachmentInfo")
+@Component("attachmentInfo")
 public class AttachmentInfo {
 
     private String contentType;
