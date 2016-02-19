@@ -12,7 +12,7 @@ import javax.jws.soap.SOAPBinding;
 /**
  * Created by AzarovD on 19.01.2016.
  */
-@WebService
+@WebService()
 @SOAPBinding(parameterStyle = SOAPBinding.ParameterStyle.BARE)
 public interface REAttrDataExchange {
 

@@ -42,5 +42,6 @@ public class REAttrDataExchangeOutConstant {
 
     public static final String OCTET_STREAM = "application/octet-stream";
     public static final String TEXT_PLAIN = "text/plain";
+    public static final String REQUEST_METHOD_POST = "POST";
 
 }

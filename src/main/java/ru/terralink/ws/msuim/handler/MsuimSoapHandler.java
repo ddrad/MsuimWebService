@@ -40,6 +40,13 @@ public class MsuimSoapHandler implements SOAPHandler<SOAPMessageContext> {
             try {
                 SOAPMessage soapMsg = context.getMessage();
 
+                String[] mimeHeader = soapMsg.getSOAPPart().getMimeHeader("Content-type");
+
+                for(String str : mimeHeader){
+                    logger.info("Content-type = " + str);
+                }
+
+
                 Iterator attachments = soapMsg.getAttachments();
 
                 while (attachments.hasNext()) {

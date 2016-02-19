@@ -18,6 +18,7 @@
     </properties>
 
     <dependencies>
+        <!-- Spring dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
@@ -39,16 +40,20 @@
             <version>${spring.version}</version>
         </dependency>
 
+        <!-- Spring-JAXWS dependencies -->
         <dependency>
             <groupId>org.jvnet.jax-ws-commons.spring</groupId>
             <artifactId>jaxws-spring</artifactId>
             <version>1.9</version>
         </dependency>
-        <dependency>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-            <version>${jaxws-rt.version}</version>
-        </dependency>
+
+        <!-- JAXWS dependencies -->
+        <!--<dependency>-->
+            <!--<groupId>com.sun.xml.ws</groupId>-->
+            <!--<artifactId>jaxws-rt</artifactId>-->
+            <!--<version>${jaxws-rt.version}</version>-->
+        <!--</dependency>-->
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -59,11 +64,11 @@
             <artifactId>slf4j-simple</artifactId>
             <version>${slf4j.version}</version>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.slf4j</groupId>-->
-            <!--<artifactId>slf4j-jdk14</artifactId>-->
-            <!--<version>${slf4j.version}</version>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jdk14</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>org.json</groupId>

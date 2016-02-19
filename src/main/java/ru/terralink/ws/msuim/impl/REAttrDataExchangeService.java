@@ -6,9 +6,11 @@ import com.opentext.livelink.service.docman.DocumentManagement;
 import com.opentext.livelink.service.docman.DocumentManagement_Service;
 import com.opentext.ecm.services.authws.AuthenticationException_Exception;
 import com.opentext.ecm.services.authws.AuthenticationService;
+import com.sun.xml.ws.api.WSBinding;
 import com.sun.xml.ws.api.message.Headers;
 import com.sun.xml.ws.api.message.Header;
 import com.sun.xml.ws.developer.JAXWSProperties;
+import com.sun.xml.ws.developer.UsesJAXBContext;
 import com.sun.xml.ws.developer.WSBindingProvider;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,13 +28,15 @@ import ru.terralink.ws.object.request.REDataExchangeAttrFile;
 import ru.terralink.ws.object.response.REAttrDataExchangeResponse;
 
 import javax.activation.DataHandler;
-import javax.activation.FileDataSource;
 import javax.jws.WebService;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.soap.*;
 import javax.xml.ws.BindingProvider;
+import javax.xml.ws.BindingType;
 import javax.xml.ws.soap.MTOMFeature;
+
+import javax.xml.ws.soap.SOAPBinding;
 import javax.xml.ws.soap.SOAPFaultException;
 import java.io.*;
 import java.net.*;
@@ -46,6 +50,7 @@ import static ru.terralink.ws.msuim.constant.REAttrDataExchangeOutConstant.*;
  */
 @Component("reAttrDataExchangeService")
 @WebService(endpointInterface = "ru.terralink.ws.msuim.impl.REAttrDataExchangeService")
+@BindingType(SOAPBinding.SOAP11HTTP_BINDING)
 public class REAttrDataExchangeService implements REAttrDataExchange {
 
     private static final Logger logger = LoggerFactory.getLogger(REAttrDataExchangeService.class.getSimpleName());
@@ -58,7 +63,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
 
     @Override
     public String sendReAttrDataExchangeResponse(REAttrDataExchangeResponse reAttrDataExchangeResponse) {
-
+        logger.error("Run sendReAttrDataExchangeResponse ...");
         if (reAttrDataExchangeResponse == null) {
             logger.error("Argument REAttrDataExchangeResponse = null.");
         }
@@ -67,14 +72,13 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
         byte[] httPostRequest = createHttPostRequest(reAttrExchangeResponse);
 
         int postDataLength = httPostRequest.length;
-        String request = "http://srv-phg-ukd3.itps.local/OTCS/cs.exe";
 
         try {
-            URL url = new URL(request);
+            URL url = new URL(openTextAdapter.getOpenTextUrl());
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setDoOutput(true);
             conn.setInstanceFollowRedirects(false);
-            conn.setRequestMethod("POST");
+            conn.setRequestMethod(REQUEST_METHOD_POST);
             conn.setDoOutput(true);
             conn.setConnectTimeout(5000);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
@@ -204,7 +208,7 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
 
     @Override
     public void sendReAttrDataExchangeMessage(REDataExchangeAttrECD reAttrDataExchangeMessage) {
-        logger.info("Run REAttrDataExchangeService...");
+        logger.info("Run sendReAttrDataExchangeMessage...");
 
         String contentType = attachmentInfo.getContentType().equals(TEXT_PLAIN) ? OCTET_STREAM : attachmentInfo.getContentType();
         logger.info("Content Type : " + contentType);
