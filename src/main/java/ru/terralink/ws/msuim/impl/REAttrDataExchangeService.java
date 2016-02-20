@@ -28,6 +28,9 @@ import ru.terralink.ws.object.request.REDataExchangeAttrFile;
 import ru.terralink.ws.object.response.REAttrDataExchangeResponse;
 
 import javax.activation.DataHandler;
+import javax.jws.Oneway;
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
 import javax.jws.WebService;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -49,7 +52,8 @@ import static ru.terralink.ws.msuim.constant.REAttrDataExchangeOutConstant.*;
  * Created by AzarovD on 19.01.2016.
  */
 @Component("reAttrDataExchangeService")
-@WebService(endpointInterface = "ru.terralink.ws.msuim.impl.REAttrDataExchangeService")
+@javax.jws.soap.SOAPBinding(parameterStyle = javax.jws.soap.SOAPBinding.ParameterStyle.BARE)
+@WebService(targetNamespace="http://inform.gazprom.ru/C/SUIM/REDataExchange", endpointInterface = "ru.terralink.ws.msuim.impl.REAttrDataExchangeService")
 @BindingType(SOAPBinding.SOAP11HTTP_BINDING)
 public class REAttrDataExchangeService implements REAttrDataExchange {
 
@@ -62,7 +66,8 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
     private AttachmentInfo attachmentInfo;
 
     @Override
-    public String sendReAttrDataExchangeResponse(REAttrDataExchangeResponse reAttrDataExchangeResponse) {
+    @WebMethod(operationName = "REAttrDataExchangeResponseMessage", action="REAttrDataExchangeResponseMessage")
+    public String reAttrDataExchangeResponseMessage(@WebParam(name = "REAttrDataExchangeResponseMessage", partName = "REAttrDataExchangeResponseMessage", targetNamespace="http://inform.gazprom.ru/C/SUIM/REDataExchange")REAttrDataExchangeResponse reAttrDataExchangeResponse) {
         logger.error("Run sendReAttrDataExchangeResponse ...");
         if (reAttrDataExchangeResponse == null) {
             logger.error("Argument REAttrDataExchangeResponse = null.");
@@ -207,7 +212,9 @@ public class REAttrDataExchangeService implements REAttrDataExchange {
     }
 
     @Override
-    public void sendReAttrDataExchangeMessage(REDataExchangeAttrECD reAttrDataExchangeMessage) {
+    @WebMethod(operationName = "REAttrDataExchangeOut", action = "REAttrDataExchangeMessage")
+    @Oneway
+    public void reAttrDataExchangeMessage(@WebParam(name = "REAttrDataExchangeMessage", partName = "REAttrDataExchangeMessage")REDataExchangeAttrECD reAttrDataExchangeMessage) {
         logger.info("Run sendReAttrDataExchangeMessage...");
 
         String contentType = attachmentInfo.getContentType().equals(TEXT_PLAIN) ? OCTET_STREAM : attachmentInfo.getContentType();

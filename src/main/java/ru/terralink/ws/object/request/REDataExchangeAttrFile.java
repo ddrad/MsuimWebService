@@ -1,6 +1,8 @@
 
 package ru.terralink.ws.object.request;
 
+import org.springframework.stereotype.Component;
+
 import java.math.BigInteger;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -53,6 +55,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "datum",
     "delete"
 })
+@Component("REDataExchangeAttrFile")
 public class REDataExchangeAttrFile {
 
     @XmlElement(name = "File_ID", required = true)

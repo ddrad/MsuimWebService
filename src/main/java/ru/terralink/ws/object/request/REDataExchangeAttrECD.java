@@ -1,6 +1,8 @@
 
 package ru.terralink.ws.object.request;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -278,6 +280,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
     "ccc",
     "attrFile"
 })
+@Component("REDataExchangeAttrECD")
 public class REDataExchangeAttrECD {
 
     @XmlElement(name = "Header", required = true)

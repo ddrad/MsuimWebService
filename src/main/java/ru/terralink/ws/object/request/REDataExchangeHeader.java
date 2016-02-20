@@ -1,6 +1,8 @@
 
 package ru.terralink.ws.object.request;
 
+import org.springframework.stereotype.Component;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -42,6 +44,7 @@ import javax.xml.bind.annotation.XmlType;
     "objectTypeDiff",
     "destination"
 })
+@Component("REDataExchangeHeader")
 public class REDataExchangeHeader {
 
     @XmlElement(name = "LogicalSystem", required = true)

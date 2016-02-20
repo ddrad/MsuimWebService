@@ -1,6 +1,8 @@
 
 package ru.terralink.ws.object.response;
 
+import org.springframework.stereotype.Component;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -181,8 +183,8 @@ import javax.xml.bind.annotation.XmlType;
     "files",
     "errorText"
 })
+@Component("REAttrDataExchangeResponse")
 public class REAttrDataExchangeResponse {
-
     @XmlElement(name = "LogicalSystem", required = true)
     protected String logicalSystem;
     @XmlElement(name = "InternalObjectNumber")
